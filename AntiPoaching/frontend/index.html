@@ -41,6 +41,7 @@
                 </div>
                 <button id="generateBtn" class="btn">Generate Random Map</button>
                 <button id="optimizeBtn" class="btn btn-primary">Run Optimization</button>
+                <button id="randomPatrolBtn" class="btn btn-secondary">Random Patrol</button>
             </section>
 
             <!-- Map Display Section -->
@@ -58,25 +59,34 @@
 
             <!-- Results Section -->
             <section id="results" class="card hidden">
-                <h2>Optimization Results</h2>
-                <div class="stats-grid">
-                    <div class="stat-box">
-                        <span class="stat-label">Before Risk</span>
-                        <span id="beforeRisk" class="stat-value">-</span>
-                    </div>
-                    <div class="stat-box">
-                        <span class="stat-label">After Risk</span>
-                        <span id="afterRisk" class="stat-value">-</span>
-                    </div>
-                    <div class="stat-box highlight">
-                        <span class="stat-label">Risk Reduction</span>
-                        <span id="riskReduction" class="stat-value">-</span>
-                    </div>
-                    <div class="stat-box">
-                        <span class="stat-label">High Risk Coverage</span>
-                        <span id="coverage" class="stat-value">-</span>
-                    </div>
-                </div>
+                <h2>Results Comparison</h2>
+                <table class="results-table">
+                    <thead>
+                        <tr>
+                            <th>Method</th>
+                            <th>Before Risk</th>
+                            <th>After Risk</th>
+                            <th>Risk Reduction</th>
+                            <th>High Risk Coverage</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr id="optimizedRow" class="hidden">
+                            <td class="method-name optimized">Optimized</td>
+                            <td id="optBeforeRisk">-</td>
+                            <td id="optAfterRisk">-</td>
+                            <td id="optRiskReduction" class="highlight-cell">-</td>
+                            <td id="optCoverage">-</td>
+                        </tr>
+                        <tr id="randomRow" class="hidden">
+                            <td class="method-name random">Random</td>
+                            <td id="randBeforeRisk">-</td>
+                            <td id="randAfterRisk">-</td>
+                            <td id="randRiskReduction">-</td>
+                            <td id="randCoverage">-</td>
+                        </tr>
+                    </tbody>
+                </table>
             </section>
         </main>
 

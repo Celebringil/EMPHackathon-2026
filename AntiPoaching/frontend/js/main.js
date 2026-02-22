@@ -52,7 +52,10 @@ function generateRandomMap() {
     }
 
     Visualizer.renderMap(currentMap, gridSize);
+    // Hide results and reset both rows
     document.getElementById('results').classList.add('hidden');
+    document.getElementById('optimizedRow').classList.add('hidden');
+    document.getElementById('randomRow').classList.add('hidden');
 }
 
 /**
@@ -84,8 +87,8 @@ async function runOptimization() {
         // Animate the routes
         await Visualizer.animateRoutes(result.routes, 50);
 
-        // Update statistics
-        Visualizer.updateStats(result.stats);
+        // Update statistics for optimized patrol
+        Visualizer.updateStatsOptimized(result.stats);
 
     } catch (error) {
         alert('Optimization failed: ' + error.message);
@@ -220,10 +223,167 @@ function getNeighbors(row, col, params) {
     return neighbors;
 }
 
+/**
+ * Run the random patrol algorithm
+ */
+async function runRandomPatrol() {
+    const rangerCount = parseInt(document.getElementById('rangerCount').value);
+    const maxSteps = parseInt(document.getElementById('maxSteps').value);
+
+    if (currentMap.riskMap.length === 0) {
+        alert('Please generate a map first!');
+        return;
+    }
+
+    Visualizer.setLoading(true);
+
+    try {
+        const params = {
+            gridSize: currentMap.gridSize,
+            rangerCount: rangerCount,
+            maxSteps: maxSteps,
+            riskMap: currentMap.riskMap,
+            animalMap: currentMap.animalMap,
+            terrainMap: currentMap.terrainMap
+        };
+
+        const result = await runRandomPatrolAlgorithm(params);
+
+        // Animate the routes
+        await Visualizer.animateRoutes(result.routes, 50);
+
+        // Update statistics for random patrol
+        Visualizer.updateStatsRandom(result.stats);
+
+    } catch (error) {
+        alert('Random patrol failed: ' + error.message);
+        console.error(error);
+    } finally {
+        Visualizer.setLoading(false);
+    }
+}
+
+/**
+ * Get 8-directional neighbors for random patrol
+ */
+function getNeighbors8(row, col, params) {
+    const neighbors = [];
+    // 8 directions: up, down, left, right, and 4 diagonals
+    const directions = [
+        [-1, 0], [1, 0], [0, -1], [0, 1],
+        [-1, -1], [-1, 1], [1, -1], [1, 1]
+    ];
+
+    for (const [dr, dc] of directions) {
+        const nr = row + dr;
+        const nc = col + dc;
+
+        if (nr >= 0 && nr < params.gridSize &&
+            nc >= 0 && nc < params.gridSize &&
+            params.terrainMap[nr][nc] === 1) {
+            neighbors.push([nr, nc]);
+        }
+    }
+
+    return neighbors;
+}
+
+/**
+ * Random patrol algorithm - pure random walk with 8 directions
+ */
+async function runRandomPatrolAlgorithm(params) {
+    // Simulate network delay
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    const routes = [];
+    const coverage = Array(params.gridSize).fill(null)
+        .map(() => Array(params.gridSize).fill(0));
+
+    // Pure random patrol
+    for (let r = 0; r < params.rangerCount; r++) {
+        const path = [];
+
+        // Find starting position (passable cell)
+        let startRow, startCol;
+        do {
+            startRow = Math.floor(Math.random() * params.gridSize);
+            startCol = Math.floor(Math.random() * params.gridSize);
+        } while (params.terrainMap[startRow][startCol] === 0);
+
+        let currentRow = startRow;
+        let currentCol = startCol;
+        path.push([currentRow, currentCol]);
+        coverage[currentRow][currentCol]++;
+
+        // Pure random walk - randomly pick from 8 neighbors
+        for (let step = 1; step < params.maxSteps; step++) {
+            const neighbors = getNeighbors8(currentRow, currentCol, params);
+            if (neighbors.length === 0) break;
+
+            // Randomly select from all neighbors (no preference)
+            const nextCell = neighbors[Math.floor(Math.random() * neighbors.length)];
+
+            currentRow = nextCell[0];
+            currentCol = nextCell[1];
+            path.push([currentRow, currentCol]);
+            coverage[currentRow][currentCol]++;
+        }
+
+        routes.push({ rangerId: r, path: path });
+    }
+
+    // Calculate statistics (same as optimization)
+    let totalRisk = 0;
+    let coveredRisk = 0;
+    let highRiskCells = 0;
+    let coveredHighRisk = 0;
+
+    for (let row = 0; row < params.gridSize; row++) {
+        for (let col = 0; col < params.gridSize; col++) {
+            if (params.terrainMap[row][col] === 1) {
+                const risk = params.riskMap[row][col];
+                totalRisk += risk;
+
+                if (risk >= 0.7) {
+                    highRiskCells++;
+                    if (coverage[row][col] > 0) {
+                        coveredHighRisk++;
+                    }
+                }
+
+                if (coverage[row][col] > 0) {
+                    coveredRisk += risk * 0.2; // 80% reduction
+                } else {
+                    coveredRisk += risk;
+                }
+            }
+        }
+    }
+
+    const beforeRisk = totalRisk / (params.gridSize * params.gridSize);
+    const afterRisk = coveredRisk / (params.gridSize * params.gridSize);
+    const reduction = ((beforeRisk - afterRisk) / beforeRisk * 100).toFixed(0);
+    const highCoverage = highRiskCells > 0
+        ? ((coveredHighRisk / highRiskCells) * 100).toFixed(0)
+        : 100;
+
+    return {
+        routes: routes,
+        coverage: coverage,
+        stats: {
+            beforeRisk: beforeRisk,
+            afterRisk: afterRisk,
+            riskReduction: reduction + '%',
+            highRiskCoverage: highCoverage + '%'
+        }
+    };
+}
+
 // Event listeners
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('generateBtn').addEventListener('click', generateRandomMap);
     document.getElementById('optimizeBtn').addEventListener('click', runOptimization);
+    document.getElementById('randomPatrolBtn').addEventListener('click', runRandomPatrol);
 
     // Generate initial map
     generateRandomMap();

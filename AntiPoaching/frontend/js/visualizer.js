@@ -78,19 +78,38 @@ const Visualizer = {
     },
 
     /**
-     * Update statistics display
+     * Update statistics display for optimized patrol
      * @param {Object} stats - Statistics object
      */
-    updateStats(stats) {
-        document.getElementById('beforeRisk').textContent =
+    updateStatsOptimized(stats) {
+        document.getElementById('optBeforeRisk').textContent =
             (stats.beforeRisk * 100).toFixed(1) + '%';
-        document.getElementById('afterRisk').textContent =
+        document.getElementById('optAfterRisk').textContent =
             (stats.afterRisk * 100).toFixed(1) + '%';
-        document.getElementById('riskReduction').textContent =
+        document.getElementById('optRiskReduction').textContent =
             stats.riskReduction;
-        document.getElementById('coverage').textContent =
+        document.getElementById('optCoverage').textContent =
             stats.highRiskCoverage;
 
+        document.getElementById('optimizedRow').classList.remove('hidden');
+        document.getElementById('results').classList.remove('hidden');
+    },
+
+    /**
+     * Update statistics display for random patrol
+     * @param {Object} stats - Statistics object
+     */
+    updateStatsRandom(stats) {
+        document.getElementById('randBeforeRisk').textContent =
+            (stats.beforeRisk * 100).toFixed(1) + '%';
+        document.getElementById('randAfterRisk').textContent =
+            (stats.afterRisk * 100).toFixed(1) + '%';
+        document.getElementById('randRiskReduction').textContent =
+            stats.riskReduction;
+        document.getElementById('randCoverage').textContent =
+            stats.highRiskCoverage;
+
+        document.getElementById('randomRow').classList.remove('hidden');
         document.getElementById('results').classList.remove('hidden');
     },
 
