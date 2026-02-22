@@ -1,5 +1,5 @@
 /**
- * Main application logic
+ * Main application logic - Local optimization algorithm
  */
 
 // Current map state
@@ -9,8 +9,6 @@ let currentMap = {
     animalMap: [],
     terrainMap: []
 };
-
-let currentResult = null;
 
 /**
  * Generate a random map
@@ -81,11 +79,7 @@ async function runOptimization() {
             terrainMap: currentMap.terrainMap
         };
 
-        // For local testing without API, use mock optimization
-        // Replace with: const result = await API.optimize(params);
-        const result = await mockOptimize(params);
-
-        currentResult = result;
+        const result = await runLocalOptimization(params);
 
         // Animate the routes
         await Visualizer.animateRoutes(result.routes, 50);
@@ -102,10 +96,9 @@ async function runOptimization() {
 }
 
 /**
- * Mock optimization for local testing (simulates Lambda response)
- * This will be replaced by actual API call
+ * Local optimization algorithm using greedy strategy
  */
-async function mockOptimize(params) {
+async function runLocalOptimization(params) {
     // Simulate network delay
     await new Promise(resolve => setTimeout(resolve, 500));
 
@@ -227,33 +220,10 @@ function getNeighbors(row, col, params) {
     return neighbors;
 }
 
-/**
- * Save current result
- */
-async function saveResult() {
-    if (!currentResult) {
-        alert('No result to save!');
-        return;
-    }
-
-    Visualizer.setLoading(true);
-
-    try {
-        // For local testing, just show success
-        // Replace with: await API.saveResult({ map: currentMap, result: currentResult });
-        alert('Result saved successfully! (Demo mode)');
-    } catch (error) {
-        alert('Failed to save: ' + error.message);
-    } finally {
-        Visualizer.setLoading(false);
-    }
-}
-
 // Event listeners
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('generateBtn').addEventListener('click', generateRandomMap);
     document.getElementById('optimizeBtn').addEventListener('click', runOptimization);
-    document.getElementById('saveBtn').addEventListener('click', saveResult);
 
     // Generate initial map
     generateRandomMap();
